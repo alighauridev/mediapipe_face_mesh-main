@@ -8,12 +8,42 @@ function App() {
   const canvasRef = useRef(null);
   const connect = window.drawConnectors;
   var camera = null;
+  function applyLipColor(canvasCtx, landmarks, color) {
+    canvasCtx.fillStyle = color;
+    canvasCtx.beginPath();
+
+    // Define the lip landmark indices
+    const lipLandmarks = [
+      61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291,
+      375, 321, 405, 314, 17, 84, 181, 91, 146, 61
+    ];
+
+    for (let i = 0; i < lipLandmarks.length; i++) {
+      const landmarkIndex = lipLandmarks[i];
+      const landmark = landmarks[landmarkIndex];
+
+      if (!landmark) {
+        console.warn(`Landmark at index ${landmarkIndex} not found.`);
+        continue;
+      }
+
+      const x = landmark.x * canvasCtx.canvas.width;
+      const y = landmark.y * canvasCtx.canvas.height;
+
+      if (i === 0) {
+        canvasCtx.moveTo(x, y);
+      } else {
+        canvasCtx.lineTo(x, y);
+      }
+    }
+    canvasCtx.closePath();
+    canvasCtx.fill();
+  }
+
+
   function onResults(results) {
-    // const video = webcamRef.current.video;
     const videoWidth = webcamRef.current.video.videoWidth;
     const videoHeight = webcamRef.current.video.videoHeight;
-
-    // Set canvas width
     canvasRef.current.width = videoWidth;
     canvasRef.current.height = videoHeight;
 
@@ -28,25 +58,28 @@ function App() {
       canvasElement.width,
       canvasElement.height
     );
+
     if (results.multiFaceLandmarks) {
       for (const landmarks of results.multiFaceLandmarks) {
+        // Draw the lip border
+        connect(canvasCtx, landmarks, Facemesh.FACEMESH_LIPS, {
+          color: "#96352da8",
+          lineWidth: 0,
+        });
+        console.log(landmarks);
+        // format of landmarks array that I checked in console
 
 
-        connect(canvasCtx, landmarks, Facemesh.FACEMESH_FACE_OVAL, {
-          color: "#E0E0E0",
-        });
-        connect(canvasCtx, landmarks, Facemesh.FACEMESH_LIPS, {
-          color: "#E0E0E0",
-        });
-        connect(canvasCtx, landmarks, Facemesh.FACEMESH_LIPS, {
-          color: "red",
-          lineWidth: 5,
-          background: 'red'
-        });
+        applyLipColor(canvasCtx, landmarks, '#96352da8');
       }
     }
+
     canvasCtx.restore();
   }
+
+
+
+
   // }
 
   // setInterval(())
