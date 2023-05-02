@@ -8,23 +8,24 @@ function App() {
   const [selectedColor, setSelectedColor] = useState("#ff0000");
   const [faceMesh, setFaceMesh] = useState(null);
   const colors = [
-    "#96352da8",
-    "#ff0000",
-    "#00ff00",
-    "#0000ff",
-    "#ffff00",
-    "#ff00ff",
-    "#00ffff",
+    "#fbcfcb",
+    "#df8a82",
+    "#fa6c98",
+    "#e28695",
+    "#764537",
+    "#9a5243",
+    "#ac7560",
+    "#bf877d",
+    "#9f727b",
+    "#d68671",
   ];
   function applyLipColor(canvasCtx, landmarks, color) {
     canvasCtx.fillStyle = color;
+    canvasCtx.globalCompositeOperation = "color"; // set the blending mode
     canvasCtx.beginPath();
 
     // Define the lip landmark indices
-    const lipLandmarks = [
-      61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17,
-      84, 181, 91, 146, 61,
-    ];
+    const lipLandmarks = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146, 61,];
 
     for (let i = 0; i < lipLandmarks.length; i++) {
       const landmarkIndex = lipLandmarks[i];
@@ -46,7 +47,9 @@ function App() {
     }
     canvasCtx.closePath();
     canvasCtx.fill();
+    canvasCtx.globalCompositeOperation = "source-over"; // reset the blending mode
   }
+
   const handleColorButtonClick = async (color) => {
     setSelectedColor(color);
     if (faceMesh) {
@@ -132,7 +135,8 @@ function App() {
     if (faceMesh) {
       faceMesh.onResults(onResults);
     }
-  }, [selectedColor, onResults, faceMesh]);
+  }, [selectedColor, onResults, faceMesh, webcamRef.current]);
+
   return (
     <center>
       <div className="App">
