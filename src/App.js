@@ -1,12 +1,11 @@
 import { FaceMesh } from "@mediapipe/face_mesh";
 import React, { useRef, useEffect, useState, useCallback } from "react";
+import { drawConnectors } from "@mediapipe/drawing_utils";
 import * as Facemesh from "@mediapipe/face_mesh";
-
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [selectedColor, setSelectedColor] = useState("#ff0000");
-  const connect = window.drawConnectors;
   const [faceMesh, setFaceMesh] = useState(null);
   const colors = [
     "#96352da8",
@@ -48,9 +47,16 @@ function App() {
     canvasCtx.closePath();
     canvasCtx.fill();
   }
-  const handleColorButtonClick = (color) => {
+  const handleColorButtonClick = async (color) => {
     setSelectedColor(color);
+    if (faceMesh) {
+      setTimeout(async () => {
+        await faceMesh.send({ image: webcamRef.current });
+      }, 50);
+    }
   };
+
+
   const handleImageUpload = (event) => {
     console.log("handleImageUpload called");
     const file = event.target.files[0];
@@ -66,6 +72,7 @@ function App() {
   };
   const onResults = useCallback(
     (results) => {
+      console.log(selectedColor);
       const imageWidth = webcamRef.current.width;
       const imageHeight = webcamRef.current.height;
       canvasRef.current.width = imageWidth;
@@ -85,12 +92,6 @@ function App() {
 
       if (results.multiFaceLandmarks) {
         for (const landmarks of results.multiFaceLandmarks) {
-          // Draw the lip border
-          connect(canvasCtx, landmarks, Facemesh.FACEMESH_LIPS, {
-            color: selectedColor, // Use the selected color from the state
-            lineWidth: 0,
-          });
-
           applyLipColor(canvasCtx, landmarks, selectedColor);
         }
       }
@@ -99,6 +100,8 @@ function App() {
     },
     [selectedColor] // Add selectedColor as a dependency
   );
+
+
 
   useEffect(() => {
     const faceMeshInstance = new FaceMesh({
@@ -114,7 +117,7 @@ function App() {
     });
 
     faceMeshInstance.onResults(onResults);
-    setFaceMesh(faceMeshInstance); // Add this line to set the faceMesh state
+    setFaceMesh(faceMeshInstance);
 
     if (
       typeof webcamRef.current !== "undefined" &&
@@ -125,7 +128,11 @@ function App() {
       };
     }
   }, []);
-
+  useEffect(() => {
+    if (faceMesh) {
+      faceMesh.onResults(onResults);
+    }
+  }, [selectedColor, onResults, faceMesh]);
   return (
     <center>
       <div className="App">
