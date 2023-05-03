@@ -1,32 +1,19 @@
 import { FaceMesh } from "@mediapipe/face_mesh";
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { drawConnectors } from "@mediapipe/drawing_utils";
+import React, { useRef, useEffect } from "react";
 import * as Facemesh from "@mediapipe/face_mesh";
+import * as cam from "@mediapipe/camera_utils";
+import Webcam from "react-webcam";
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
-  const [selectedColor, setSelectedColor] = useState("#fbcfcb");
-  const [faceMesh, setFaceMesh] = useState(null);
-  const [display, setDisplay] = useState(true)
-  const colors = [
-    "#fbcfcb",
-    "#df8a82",
-    "#fa6c98",
-    "#e28695",
-    "#764537",
-    "#9a5243",
-    "#ac7560",
-    "#bf877d",
-    "#9f727b",
-    "#d68671",
-  ];
+  const connect = window.drawConnectors;
+  var camera = null;
   function applyLipColor(canvasCtx, landmarks, color) {
     // Save the current canvas state
     canvasCtx.save();
 
     // Set the globalCompositeOperation property to "multiply"
     canvasCtx.globalCompositeOperation = "multiply";
-
     // Define the lip landmark indices
     const lipLandmarks = [
       61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17,
@@ -61,121 +48,74 @@ function App() {
     canvasCtx.restore();
   }
 
-  const handleColorButtonClick = async (color) => {
-    setSelectedColor(color);
-    if (faceMesh) {
-      setTimeout(async () => {
-        await faceMesh.send({ image: webcamRef.current });
-      }, 50);
-    }
-  };
+  function onResults(results) {
+    const videoWidth = webcamRef.current.video.videoWidth;
+    const videoHeight = webcamRef.current.video.videoHeight;
+    canvasRef.current.width = videoWidth;
+    canvasRef.current.height = videoHeight;
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      webcamRef.current.src = url;
-      webcamRef.current.onload = async () => {
-        if (faceMesh) {
-          await faceMesh.send({ image: webcamRef.current });
-        }
-      };
-    }
-    setDisplay(false)
+    const canvasElement = canvasRef.current;
+    const canvasCtx = canvasElement.getContext("2d");
+    canvasCtx.save();
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    canvasCtx.drawImage(
+      results.image,
+      0,
+      0,
+      canvasElement.width,
+      canvasElement.height
+    );
 
-  };
-  const onResults = useCallback(
-    (results) => {
-      console.log(selectedColor);
-      const imageWidth = webcamRef.current.width;
-      const imageHeight = webcamRef.current.height;
-      canvasRef.current.width = imageWidth;
-      canvasRef.current.height = imageHeight;
+    if (results.multiFaceLandmarks) {
+      for (const landmarks of results.multiFaceLandmarks) {
+        // Draw the lip border
 
-      const canvasElement = canvasRef.current;
-      const canvasCtx = canvasElement.getContext("2d");
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(
-        results.image,
-        0,
-        0,
-        canvasElement.width,
-        canvasElement.height
-      );
+        console.log(landmarks);
+        // format of landmarks array that I checked in console
 
-      if (results.multiFaceLandmarks) {
-        for (const landmarks of results.multiFaceLandmarks) {
-          applyLipColor(canvasCtx, landmarks, selectedColor);
-        }
+        applyLipColor(canvasCtx, landmarks, "#fbcfcb");
       }
+    }
 
-      canvasCtx.restore();
-    },
-    [selectedColor] // Add selectedColor as a dependency
-  );
+    canvasCtx.restore();
+  }
 
+  // }
+
+  // setInterval(())
   useEffect(() => {
-    const faceMeshInstance = new FaceMesh({
+    const faceMesh = new FaceMesh({
       locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
       },
     });
 
-    faceMeshInstance.setOptions({
+    faceMesh.setOptions({
       maxNumFaces: 1,
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5,
     });
 
-    faceMeshInstance.onResults(onResults);
-    setFaceMesh(faceMeshInstance);
+    faceMesh.onResults(onResults);
 
     if (
       typeof webcamRef.current !== "undefined" &&
       webcamRef.current !== null
     ) {
-      webcamRef.current.onload = async () => {
-        await faceMeshInstance.send({ image: webcamRef.current });
-      };
+      camera = new cam.Camera(webcamRef.current.video, {
+        onFrame: async () => {
+          await faceMesh.send({ image: webcamRef.current.video });
+        },
+        width: 640,
+        height: 480,
+      });
+      camera.start();
     }
   }, []);
-  useEffect(() => {
-    if (faceMesh) {
-      faceMesh.onResults(onResults);
-    }
-  }, [selectedColor, onResults, faceMesh, webcamRef.current, handleImageUpload]);
-
   return (
     <center>
-      <div className="App" style={{ marginTop: 10 }}>
-        {/* Update the onChange event to call handleImageUpload */}
-        <>
-          {
-            display && <input type="file" accept="image/*" onChange={handleImageUpload} />
-
-          }
-        </>
-        {/* Add a color picker input */}
-        {/* Create buttons for each color in the list */}
-        <div style={{ marginTop: 10 }}>
-          {colors.map((color, index) => (
-            <button
-              key={index}
-              onClick={() => handleColorButtonClick(color)}
-              style={{
-                backgroundColor: color,
-                width: 30,
-                height: 30,
-                marginRight: 5,
-                border: selectedColor === color ? "2px solid black" : "none",
-              }}
-            ></button>
-          ))}
-        </div>
-        {/* ... */}
-
-        <img
+      <div className="App">
+        <Webcam
           ref={webcamRef}
           style={{
             position: "absolute",
@@ -183,13 +123,12 @@ function App() {
             marginRight: "auto",
             left: 0,
             right: 0,
-            top: 100,
             textAlign: "center",
             zindex: 9,
-            minHeight: 480,
-            maxHeight: 480,
+            width: 640,
+            height: 480,
           }}
-        />
+        />{" "}
         <canvas
           ref={canvasRef}
           className="output_canvas"
@@ -197,13 +136,12 @@ function App() {
             position: "absolute",
             marginLeft: "auto",
             marginRight: "auto",
-            top: 100,
             left: 0,
             right: 0,
             textAlign: "center",
             zindex: 9,
-            minHeight: 480,
-            maxHeight: 480,
+            width: 640,
+            height: 480,
           }}
         ></canvas>
       </div>
