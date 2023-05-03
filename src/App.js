@@ -49,7 +49,7 @@ function App() {
             <div className="item">
               <h2>GET STARTED!</h2>
               <p>By using 'Try It On,' I understand that L'Oreal USA, Inc. may process my image.</p>
-              <p> (A) I consent to the scanning of my face and the processing of my image as described in the Virtual Try-On Information Notice and agree to all its terms, including as regards data retention, data deletion, and data use, processing, storage, and transfer; and (B) I am a US resident, 18+, and agree to the Terms of Use (which include an arbitration provision to resolve disputes) and all terms set forth therein.</p>
+              <p> (A) I consent to the scanning of my face and the processing of my image as described in the Virtual Try-On Information Notice and agree to all its terms, including as regards data retention, data deletion, and data use, processing, storage, and transfer; and (B) I am a US resident, and agree to the Terms of Use (which include an arbitration provision to resolve disputes) and all terms set forth therein.</p>
               <div className="btns">
                 <button onClick={() => navigate('/video')}>CAPTURE IMAGE</button>
                 <button onClick={handleButtonClick}>UPLOAD IMAGE</button>
