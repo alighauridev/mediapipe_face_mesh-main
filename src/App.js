@@ -1,151 +1,78 @@
-import { FaceMesh } from "@mediapipe/face_mesh";
-import React, { useRef, useEffect } from "react";
-import * as Facemesh from "@mediapipe/face_mesh";
-import * as cam from "@mediapipe/camera_utils";
+import React, { useRef, useState } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
+import ImagePreview from "./pages/ImagePreview";
+import VideoPreview from "./pages/VideoPreview";
+import "./app.scss"
 function App() {
   const webcamRef = useRef(null);
-  const canvasRef = useRef(null);
-  const connect = window.drawConnectors;
-  var camera = null;
-  function applyLipColor(canvasCtx, landmarks, color) {
-    // Save the current canvas state
-    canvasCtx.save();
+  const [image, setImage] = useState(null);
+  const fileInputRef = useRef(null);
 
-    // Set the globalCompositeOperation property to "multiply"
-    canvasCtx.globalCompositeOperation = "multiply";
-    // Define the lip landmark indices
-    const lipLandmarks = [
-      61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17,
-      84, 181, 91, 146, 61,
-    ];
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
 
-    for (let i = 0; i < lipLandmarks.length; i++) {
-      const landmarkIndex = lipLandmarks[i];
-      const landmark = landmarks[landmarkIndex];
+  const handleFileUpload = (event) => {
+    setFile(event.target.files[0])
+    navigate('/photo')
+  };
+  const navigate = useNavigate();
+  const [file, setFile] = useState(null)
+  const capture = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImage(imageSrc);
+    // Stop the video stream
+    webcamRef.current.video.pause();
+  };
 
-      if (!landmark) {
-        console.warn(`Landmark at index ${landmarkIndex} not found.`);
-        continue;
-      }
-
-      const x = landmark.x * canvasCtx.canvas.width;
-      const y = landmark.y * canvasCtx.canvas.height;
-
-      if (i === 0) {
-        canvasCtx.moveTo(x, y);
-      } else {
-        canvasCtx.lineTo(x, y);
-      }
+  const retakePhoto = () => {
+    setImage(null);
+    // Start the video stream again
+    if (webcamRef.current && webcamRef.current.video) {
+      webcamRef.current.video.play();
     }
-    canvasCtx.closePath();
+  };
+  const handleImageUpload = (event) => {
+    setFile(event.target.files[0])
+    navigate('/photo')
 
-    // Set the fillStyle to the selected color
-    canvasCtx.fillStyle = color;
-    canvasCtx.fill();
 
-    // Restore the canvas state
-    canvasCtx.restore();
-  }
+  };
 
-  function onResults(results) {
-    const videoWidth = webcamRef.current.video.videoWidth;
-    const videoHeight = webcamRef.current.video.videoHeight;
-    canvasRef.current.width = videoWidth;
-    canvasRef.current.height = videoHeight;
+  const CameraPreview = () => {
+    return (
+      <div className="main__page">
 
-    const canvasElement = canvasRef.current;
-    const canvasCtx = canvasElement.getContext("2d");
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.drawImage(
-      results.image,
-      0,
-      0,
-      canvasElement.width,
-      canvasElement.height
-    );
+        <div className="container">
+          <div className="grid">
+            <div className="item">
+              <h2>GET STARTED!</h2>
+              <p>By using 'Try It On,' I understand that L'Oreal USA, Inc. may process my image.</p>
+              <p> (A) I consent to the scanning of my face and the processing of my image as described in the Virtual Try-On Information Notice and agree to all its terms, including as regards data retention, data deletion, and data use, processing, storage, and transfer; and (B) I am a US resident, 18+, and agree to the Terms of Use (which include an arbitration provision to resolve disputes) and all terms set forth therein.</p>
+              <div className="btns">
+                <button onClick={() => navigate('/video')}>CAPTURE IMAGE</button>
+                <button onClick={handleButtonClick}>UPLOAD IMAGE</button>
+                <div style={{ display: 'none' }}>
+                  <input type="file" ref={fileInputRef} onChange={handleFileUpload} />
+                </div>
+              </div>
+            </div>
 
-    if (results.multiFaceLandmarks) {
-      for (const landmarks of results.multiFaceLandmarks) {
-        // Draw the lip border
-
-        console.log(landmarks);
-        // format of landmarks array that I checked in console
-
-        applyLipColor(canvasCtx, landmarks, "#fbcfcb");
-      }
-    }
-
-    canvasCtx.restore();
-  }
-
-  // }
-
-  // setInterval(())
-  useEffect(() => {
-    const faceMesh = new FaceMesh({
-      locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-      },
-    });
-
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
-
-    faceMesh.onResults(onResults);
-
-    if (
-      typeof webcamRef.current !== "undefined" &&
-      webcamRef.current !== null
-    ) {
-      camera = new cam.Camera(webcamRef.current.video, {
-        onFrame: async () => {
-          await faceMesh.send({ image: webcamRef.current.video });
-        },
-        width: 640,
-        height: 480,
-      });
-      camera.start();
-    }
-  }, []);
-  return (
-    <center>
-      <div className="App">
-        <Webcam
-          ref={webcamRef}
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zindex: 9,
-            width: 640,
-            height: 480,
-          }}
-        />{" "}
-        <canvas
-          ref={canvasRef}
-          className="output_canvas"
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zindex: 9,
-            width: 640,
-            height: 480,
-          }}
-        ></canvas>
+          </div>
+        </div>
       </div>
-    </center>
+    )
+  }
+
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<CameraPreview />} />
+        <Route path="/photo" element={<ImagePreview file={file} />} />
+        <Route path="/video" element={<VideoPreview />} />
+      </Routes>
+    </>
   );
 }
 
