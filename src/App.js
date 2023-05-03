@@ -148,7 +148,7 @@ function App() {
 
   return (
     <center>
-      <div className="App">
+      <div className="App" style={{ marginTop: 10 }}>
         {/* Update the onChange event to call handleImageUpload */}
         <>
           {
