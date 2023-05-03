@@ -5,8 +5,9 @@ import * as Facemesh from "@mediapipe/face_mesh";
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
-  const [selectedColor, setSelectedColor] = useState("#ff0000");
+  const [selectedColor, setSelectedColor] = useState("#fbcfcb");
   const [faceMesh, setFaceMesh] = useState(null);
+  const [display, setDisplay] = useState(true)
   const colors = [
     "#fbcfcb",
     "#df8a82",
@@ -20,12 +21,17 @@ function App() {
     "#d68671",
   ];
   function applyLipColor(canvasCtx, landmarks, color) {
-    canvasCtx.fillStyle = color;
-    canvasCtx.globalCompositeOperation = "color"; // set the blending mode
-    canvasCtx.beginPath();
+    // Save the current canvas state
+    canvasCtx.save();
+
+    // Set the globalCompositeOperation property to "multiply"
+    canvasCtx.globalCompositeOperation = "multiply";
 
     // Define the lip landmark indices
-    const lipLandmarks = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146, 61,];
+    const lipLandmarks = [
+      61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17,
+      84, 181, 91, 146, 61,
+    ];
 
     for (let i = 0; i < lipLandmarks.length; i++) {
       const landmarkIndex = lipLandmarks[i];
@@ -46,8 +52,13 @@ function App() {
       }
     }
     canvasCtx.closePath();
+
+    // Set the fillStyle to the selected color
+    canvasCtx.fillStyle = color;
     canvasCtx.fill();
-    canvasCtx.globalCompositeOperation = "source-over"; // reset the blending mode
+
+    // Restore the canvas state
+    canvasCtx.restore();
   }
 
   const handleColorButtonClick = async (color) => {
@@ -59,9 +70,7 @@ function App() {
     }
   };
 
-
   const handleImageUpload = (event) => {
-    console.log("handleImageUpload called");
     const file = event.target.files[0];
     if (file) {
       const url = URL.createObjectURL(file);
@@ -72,6 +81,8 @@ function App() {
         }
       };
     }
+    setDisplay(false)
+
   };
   const onResults = useCallback(
     (results) => {
@@ -104,8 +115,6 @@ function App() {
     [selectedColor] // Add selectedColor as a dependency
   );
 
-
-
   useEffect(() => {
     const faceMeshInstance = new FaceMesh({
       locateFile: (file) => {
@@ -135,13 +144,18 @@ function App() {
     if (faceMesh) {
       faceMesh.onResults(onResults);
     }
-  }, [selectedColor, onResults, faceMesh, webcamRef.current]);
+  }, [selectedColor, onResults, faceMesh, webcamRef.current, handleImageUpload]);
 
   return (
     <center>
       <div className="App">
         {/* Update the onChange event to call handleImageUpload */}
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
+        <>
+          {
+            display && <input type="file" accept="image/*" onChange={handleImageUpload} />
+
+          }
+        </>
         {/* Add a color picker input */}
         {/* Create buttons for each color in the list */}
         <div style={{ marginTop: 10 }}>
@@ -173,7 +187,7 @@ function App() {
             textAlign: "center",
             zindex: 9,
             minHeight: 480,
-            maxHeight: 480
+            maxHeight: 480,
           }}
         />
         <canvas
@@ -189,7 +203,7 @@ function App() {
             textAlign: "center",
             zindex: 9,
             minHeight: 480,
-            maxHeight: 480
+            maxHeight: 480,
           }}
         ></canvas>
       </div>
