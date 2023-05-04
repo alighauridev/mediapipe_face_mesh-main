@@ -23,6 +23,15 @@ function ImagePreview({ file }) {
         "#9f727b",
         "#d68671",
     ];
+    function hexToRgba(hex, alpha) {
+        const bigint = parseInt(hex.substring(1), 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
     function applyLipColor(canvasCtx, landmarks, color) {
         // Save the current canvas state
         canvasCtx.save();
@@ -54,10 +63,8 @@ function ImagePreview({ file }) {
                 canvasCtx.lineTo(x, y);
             }
         }
-        canvasCtx.closePath();
-
-        // Set the fillStyle to the selected color
-        canvasCtx.fillStyle = color;
+        const rgbaColor = hexToRgba(color, 0.7);
+        canvasCtx.fillStyle = rgbaColor;
         canvasCtx.fill();
 
         // Restore the canvas state
