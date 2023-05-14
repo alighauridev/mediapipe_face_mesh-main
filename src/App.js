@@ -3,6 +3,7 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import ImagePreview from "./pages/ImagePreview";
 import VideoPreview from "./pages/VideoPreview";
+import NavBar from "./components/NavBar"
 import "./app.scss"
 function App() {
   const webcamRef = useRef(null);
@@ -67,6 +68,7 @@ function App() {
 
   return (
     <>
+      <NavBar />
       <Routes>
         <Route path="/" element={<CameraPreview />} />
         <Route path="/photo" element={<ImagePreview file={file} />} />

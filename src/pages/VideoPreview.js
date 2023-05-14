@@ -210,6 +210,7 @@ function VideoPreview() {
                                 audio={false}
                                 ref={webcamRef}
                                 screenshotFormat="image/jpeg"
+
                             />
                             <div className="btns">
                                 <button onClick={capture}>Capture photo</button>
