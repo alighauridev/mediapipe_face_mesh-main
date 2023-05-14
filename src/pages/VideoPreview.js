@@ -234,7 +234,7 @@ function VideoPreview() {
                                                 minHeight: '480px',
                                                 maxHeight: '480px',
                                                 opacity: '1',
-                                                transform: 'translateX(-50%)'
+                                                transform: 'translateX(-50%) rotateY(180deg)'
                                             }}
                                         />    <canvas
                                             ref={canvasRef}
