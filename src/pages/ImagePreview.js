@@ -11,6 +11,7 @@ function ImagePreview({ file }) {
     const [faceMesh, setFaceMesh] = useState(null);
     const [display, setDisplay] = useState(true);
     const navigate = useNavigate()
+
     const colors = [
         "#fbcfcb",
         "#df8a82",

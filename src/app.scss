@@ -1,3 +1,4 @@
+@import "./components/media.scss";
 .main__page {
   margin-top: 50px;
   margin-bottom: 50px;
@@ -48,11 +49,20 @@
   .container {
     max-width: 1100px;
     margin: auto;
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
+    .colors__grid {
+      display: flex;
       justify-content: center;
       align-items: center;
+      flex-wrap: wrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      justify-content: center;
+      align-items: center;
+      @include md {
+        grid-template-columns: 1fr;
+      }
       .item {
         height: 540px;
         width: 400px;
@@ -64,6 +74,12 @@
         text-align: center;
         margin: auto;
         flex-direction: column;
+        @include md {
+          order: 2;
+          overflow: hidden;
+          /* display: none; */
+          width: 310px;
+        }
         .top {
           position: relative;
           width: 100%;

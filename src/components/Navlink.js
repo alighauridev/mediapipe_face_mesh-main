@@ -8,26 +8,25 @@ const Navlink = () => {
                 <ul>
                     <li>
                         {" "}
-                        <Link to="https://lip-gloss-site.netlify.app/">
+                        <Link to="https://lipgloss-versionthree.netlify.app/">
                             Home
                             {/* <i className="fas fa-caret-down" /> */}
                         </Link>
                     </li>
                     <li>
-                        <Link to="https://lip-gloss-site.netlify.app/shop">
+                        <Link to="https://lipgloss-versionthree.netlify.app/shop">
                             Shop
                             {/* <i className="fas fa-caret-down" /> */}
                         </Link>
                     </li>
 
                     <li>
-                        <a href="https://final--fluffy-mochi-9598b3.netlify.app/">
-                            Lip Viewer
-                        </a>
+                        <Link to="https://lipgloss-versionthree.netlify.app/about">
+                            About Us
+                        </Link>
                     </li>
-
                     <li>
-                        <Link to="https://lip-gloss-site.netlify.app/about">About Us</Link>
+                        <Link to="/color-blender">Create Your Lip</Link>
                     </li>
                 </ul>
             </div>
