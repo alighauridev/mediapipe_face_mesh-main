@@ -200,7 +200,7 @@ function VideoPreview() {
 
     return (
 
-        <div className="image__capture" >
+        <div className="image__capture__" >
 
             <div className="container">
                 <div className="grid">
